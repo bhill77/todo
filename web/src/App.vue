@@ -27,7 +27,7 @@
             <td>{{ todo.text }}</td>
             <td>{{ todo.tag }}</td>
             <td>{{ todo.createdAt }}</td>
-            <td><button>Delete</button></td>
+            <td><button @click="deleteTodo(todo._id)">Delete</button></td>
           </tr>
         </table>
       </div>
@@ -67,10 +67,10 @@ export default {
     if (this.isLoggedIn && !todoStore.isInitialized) {
       todoStore.setName(this.username)
       await todoStore.initialize()
-      this.list = todoStore.data
     }
 
     if (this.isLoggedIn) {
+      this.list = todoStore.data
       this.countUnuploaded = todoStore.countUnuploadeds()
       this.lastUpload = todoStore.dataMeta.tsUpload
     }
@@ -117,6 +117,12 @@ export default {
         alert(err.message);
       }
     },
+
+    async deleteTodo(id) {
+      await todoStore.deleteItem(id, userStore.data)
+      this.list = todoStore.data
+    },
+
   }
 }
 </script>
