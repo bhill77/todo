@@ -15,6 +15,7 @@
 
       <div class="list">
         <h4>Todos: <button @click="upload">Sync ({{ countUnuploaded }})</button></h4>
+        <div>Last sync: {{ lastUpload }}</div>
         <li v-for="todo in list" :key="todo._id">{{ todo.text }} - {{ todo.tag }} </li>
       </div>
     </div>
@@ -37,6 +38,7 @@ export default {
       todoTag: '',
       list: [],
       countUnuploaded: 0,
+      lastUpload: '',
     }
   },
 
@@ -57,6 +59,7 @@ export default {
 
     if (this.isLoggedIn) {
       this.countUnuploaded = todoStore.countUnuploadeds()
+      this.lastUpload = todoStore.dataMeta.tsUpload
     }
   },
 
