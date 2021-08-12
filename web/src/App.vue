@@ -14,7 +14,7 @@
       </div>
 
       <div class="list">
-        <h4>Todos:</h4>
+        <h4>Todos: <button @click="upload">Sync ({{ countUnuploaded }})</button></h4>
         <li v-for="todo in list" :key="todo._id">{{ todo.text }} - {{ todo.tag }} </li>
       </div>
     </div>
@@ -36,6 +36,7 @@ export default {
       todoText: '',
       todoTag: '',
       list: [],
+      countUnuploaded: 0,
     }
   },
 
@@ -52,6 +53,10 @@ export default {
       todoStore.setName(this.username)
       await todoStore.initialize()
       this.list = todoStore.data
+    }
+
+    if (this.isLoggedIn) {
+      this.countUnuploaded = todoStore.countUnuploadeds()
     }
   },
 
@@ -86,7 +91,16 @@ export default {
 
       this.todoText = ''
       this.todoTag = ''
-    }
+    },
+
+    async upload() {
+      try {
+        await todoStore.upload();
+        this.countUnuploaded = todoStore.countUnuploadeds()
+      } catch (err) {
+        alert(err.message);
+      }
+    },
   }
 }
 </script>
