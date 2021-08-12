@@ -7,10 +7,15 @@
     <div v-else>
       <div class="user">Hi, {{ username }}! &nbsp; <button @click="logout">Logout</button></div>
       <div>
-      Add Todo:
-      <input v-model="todoText" v-on:keyup.enter="submit" /> &nbsp;
-      Tag: <input v-model="todoTag" v-on:keyup.enter="submit" /> &nbsp;
-      <button @click="submit">Save</button>
+        Add Todo:
+        <input v-model="todoText" v-on:keyup.enter="submit" /> &nbsp;
+        Tag: <input v-model="todoTag" v-on:keyup.enter="submit" /> &nbsp;
+        <button @click="submit">Save</button>
+      </div>
+
+      <div class="list">
+        <h4>Todos:</h4>
+        <li v-for="todo in list" :key="todo._id">{{ todo.text }} - {{ todo.tag }} </li>
       </div>
     </div>
   </div>
@@ -18,6 +23,7 @@
 
 <script>
 import userStore from './store/user'
+import todoStore from './store/todo'
 
 export default {
   name: 'App',
@@ -35,9 +41,17 @@ export default {
 
   mounted: async function() {
     await userStore.initialize()
-    if (userStore.data.user) {
+    if (userStore.data.username) {
       this.isLoggedIn = true
-      this.username = userStore.data.user
+      this.username = userStore.data.username
+    }
+  },
+
+  updated: async function() {
+    if (this.isLoggedIn && !todoStore.isInitialized) {
+      todoStore.setName(this.username)
+      await todoStore.initialize()
+      this.list = todoStore.data
     }
   },
 
@@ -46,7 +60,7 @@ export default {
       if (this.loginForm === '') return
 
       await userStore.editSingle({
-        user: this.loginForm
+        username: this.loginForm
       })
       this.username = this.loginForm
       this.isLoggedIn = true
@@ -55,14 +69,23 @@ export default {
 
     async logout() {
       await userStore.deleteSingle();
+      await todoStore.deinitialize();
       this.isLoggedIn = false
     },
 
     async submit(e) {
       e.preventDefault()
       if (this.todoText === '') return
-      console.log(this.todoText)
-      //
+
+      const data = {
+        text: this.todoText,
+        tag: this.todoTag,
+      }
+      await todoStore.addItem(data, userStore.data)
+      this.list = todoStore.data
+
+      this.todoText = ''
+      this.todoTag = ''
     }
   }
 }
@@ -80,5 +103,9 @@ export default {
 
 .user {
   margin-bottom: 10px;
+}
+
+.list h4 {
+  margin: 5px auto;
 }
 </style>
