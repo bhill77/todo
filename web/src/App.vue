@@ -16,7 +16,20 @@
       <div class="list">
         <h4>Todos: <button @click="upload">Sync ({{ countUnuploaded }})</button></h4>
         <div>Last sync: {{ lastUpload }}</div>
-        <li v-for="todo in list" :key="todo._id">{{ todo.text }} - {{ todo.tag }} </li>
+        <table>
+          <tr>
+            <th>Todo</th>
+            <th>Tag</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+          <tr v-for="todo in list" :key="todo._id">
+            <td>{{ todo.text }}</td>
+            <td>{{ todo.tag }}</td>
+            <td>{{ todo.createdAt }}</td>
+            <td><button>Delete</button></td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
@@ -124,5 +137,14 @@ export default {
 
 .list h4 {
   margin: 5px auto;
+}
+
+table {
+  border: 1px solid;
+}
+table td, table th {
+  border-bottom: 1px solid;
+  padding: 3px 10px;
+  margin: 2px;
 }
 </style>
