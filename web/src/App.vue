@@ -7,10 +7,11 @@
     <div v-else>
       <div class="user">Hi, {{ username }}! &nbsp; <button @click="logout">Logout</button></div>
       <div>
-        Add Todo:
-        <input v-model="todoText" v-on:keyup.enter="submit" /> &nbsp;
-        Tag: <input v-model="todoTag" v-on:keyup.enter="submit" /> &nbsp;
-        <button @click="submit">Save</button>
+        {{ editMode ? 'Edit': 'Add' }} Todo:
+        <input v-model="todo.text" v-on:keyup.enter="submit" ref="todoForm" /> &nbsp;
+        Tag: <input v-model="todo.tag" v-on:keyup.enter="submit" /> &nbsp;
+        <button @click="submit">{{ editMode? 'Update' : 'Add' }}</button>
+        <button v-if="editMode" @click="cancel">Cancel</button>
       </div>
 
       <div class="list">
@@ -23,11 +24,14 @@
             <th>Created</th>
             <th></th>
           </tr>
-          <tr v-for="todo in list" :key="todo._id">
+          <tr v-for="(todo, index) in list" :key="index">
             <td>{{ todo.text }}</td>
             <td>{{ todo.tag }}</td>
             <td>{{ todo.createdAt }}</td>
-            <td><button @click="deleteTodo(todo._id)">Delete</button></td>
+            <td>
+              <button @click="edit(todo, index)">Edit</button>
+              <button @click="deleteTodo(todo._id)">Done</button>
+            </td>
           </tr>
         </table>
       </div>
@@ -47,11 +51,11 @@ export default {
       isLoggedIn: false,
       loginForm: '',
       username: '',
-      todoText: '',
-      todoTag: '',
       list: [],
       countUnuploaded: 0,
       lastUpload: '',
+      todo: {},
+      editMode: false,
     }
   },
 
@@ -96,17 +100,29 @@ export default {
 
     async submit(e) {
       e.preventDefault()
-      if (this.todoText === '') return
+      if (!this.todo.text) return
 
-      const data = {
-        text: this.todoText,
-        tag: this.todoTag,
+      if (!this.editMode) {
+        this.addTodo()
+      } else {
+        this.updateTodo()
       }
-      await todoStore.addItem(data, userStore.data)
-      this.list = todoStore.data
+    },
 
-      this.todoText = ''
-      this.todoTag = ''
+    async addTodo() {
+      await todoStore.addItem(this.todo, userStore.data)
+      this.todo = {}
+    },
+
+    async updateTodo() {
+      const data = {
+        text: this.todo.text,
+          tag: this.todo.tag
+        }
+        await todoStore.editItem(this.todo._id, data, userStore.data)
+        this.editMode = false
+        this.$set(this.list, this.index, { ...this.todo })
+        this.todo = {}
     },
 
     async upload() {
@@ -123,6 +139,18 @@ export default {
       this.list = todoStore.data
     },
 
+    async edit(todo, index) {
+      this.editMode = true
+      this.todo = { ...todo }
+      this.$refs.todoForm.focus()
+      this.index = index
+    },
+
+    cancel() {
+      this.editMode = false
+      this.todo = {}
+    },
+
   }
 }
 </script>
@@ -132,7 +160,7 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  width: 500px;
+  width: 600px;
   color: #2c3e50;
   margin: 60px auto 0;
 }
